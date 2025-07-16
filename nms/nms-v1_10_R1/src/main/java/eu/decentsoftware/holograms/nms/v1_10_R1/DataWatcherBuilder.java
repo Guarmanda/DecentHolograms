@@ -28,7 +28,7 @@ class DataWatcherBuilder {
         return this;
     }
 
-    DataWatcherBuilder withArmorStandProperties(boolean small, boolean marker) {
+    DataWatcherBuilder withArmorStandProperties() {
         /*
          * Armor Stand Properties:
          * 0x01 - Small
@@ -39,12 +39,8 @@ class DataWatcherBuilder {
          */
 
         byte data = 0x08; // Always Remove Baseplate
-        if (small) {
-            data |= 0x01;
-        }
-        if (marker) {
-            data |= 0x10;
-        }
+        data |= 0x01;
+        data |= 0x10;
 
         EntityMetadataType.ARMOR_STAND_PROPERTIES.addToDataWatcher(dataWatcher, data);
         return this;

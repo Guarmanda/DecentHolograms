@@ -17,7 +17,7 @@ import java.util.stream.Collectors;
 
 @Getter
 @Setter
-public abstract class HologramObject extends FlagHolder {
+public abstract class HologramObject  {
 
     /*
      *	Fields
@@ -94,17 +94,6 @@ public abstract class HologramObject extends FlagHolder {
 
         this.cause = cause;
         this.enabled = false;
-    }
-
-    /**
-     * The cause for disabling the hologram.
-     * <br>May return {@link DisableCause#NONE} if the Hologram is still enabled.
-     *
-     * @return The cause of why the Hologram is disabled, or {@link DisableCause#NONE} if it is still enabled.
-     */
-    @NonNull
-    public DisableCause getDisableCause() {
-        return cause;
     }
 
     /**

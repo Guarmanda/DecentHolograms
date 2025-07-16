@@ -4,21 +4,10 @@ import eu.decentsoftware.holograms.api.DHAPI;
 import eu.decentsoftware.holograms.api.DecentHolograms;
 import eu.decentsoftware.holograms.api.DecentHologramsAPI;
 import eu.decentsoftware.holograms.api.Settings;
-import eu.decentsoftware.holograms.api.actions.Action;
-import eu.decentsoftware.holograms.api.actions.ClickType;
-import eu.decentsoftware.holograms.api.holograms.enums.EnumFlag;
 import eu.decentsoftware.holograms.api.holograms.objects.UpdatingHologramObject;
-import eu.decentsoftware.holograms.api.utils.Log;
-import eu.decentsoftware.holograms.api.utils.config.FileConfig;
-import eu.decentsoftware.holograms.api.utils.event.EventFactory;
-import eu.decentsoftware.holograms.api.utils.exception.LocationParseException;
-import eu.decentsoftware.holograms.api.utils.location.LocationUtils;
 import eu.decentsoftware.holograms.api.utils.reflect.Version;
 import eu.decentsoftware.holograms.api.utils.scheduler.S;
 import eu.decentsoftware.holograms.api.utils.tick.ITicked;
-import eu.decentsoftware.holograms.event.HologramClickEvent;
-import eu.decentsoftware.holograms.nms.api.renderer.NmsClickableHologramRenderer;
-import eu.decentsoftware.holograms.shared.DecentPosition;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
@@ -27,24 +16,18 @@ import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
-import java.util.stream.Collectors;
 
 @Getter
 @Setter
@@ -96,119 +79,6 @@ public class Hologram extends UpdatingHologramObject implements ITicked {
      *	Static Methods
      */
 
-    @SuppressWarnings("unchecked")
-    @NonNull
-    public static Hologram fromFile(final @NotNull String filePath) throws LocationParseException, IllegalArgumentException {
-        Hologram hologram = null;
-        try {
-            final FileConfig config = new FileConfig(DECENT_HOLOGRAMS.getPlugin(), "holograms/" + filePath);
-            final String fileName = new File(filePath).getName();
-
-            // Parse hologram name
-            String name;
-            if (fileName.toLowerCase().startsWith("hologram_") && fileName.length() > "hologram_".length()) {
-                name = fileName.substring("hologram_".length(), fileName.length() - 4);
-            } else {
-                name = fileName.substring(0, fileName.length() - 4);
-            }
-
-            if (name.isEmpty()) {
-                // This shouldn't happen when loading holograms from files.
-                throw new IllegalArgumentException("Hologram name cannot be null or empty.");
-            }
-
-            if (Hologram.getCachedHologramNames().contains(name)) {
-                throw new IllegalArgumentException("Hologram with name '" + name + "' already exists.");
-            }
-
-            // Get hologram location
-            String locationString = config.getString("location");
-            Location location = LocationUtils.asLocationE(locationString);
-
-            boolean enabled = true;
-            if (config.isBoolean("enabled")) {
-                enabled = config.getBoolean("enabled");
-            }
-
-            hologram = new Hologram(name, location, config, enabled);
-            if (config.isString("permission")) {
-                hologram.setPermission(config.getString("permission"));
-            }
-            hologram.setDisplayRange(config.getInt("display-range", Settings.DEFAULT_DISPLAY_RANGE));
-            hologram.setUpdateRange(config.getInt("update-range", Settings.DEFAULT_UPDATE_RANGE));
-            hologram.setUpdateInterval(config.getInt("update-interval", Settings.DEFAULT_UPDATE_INTERVAL));
-            hologram.addFlags(config.getStringList("flags").stream().map(EnumFlag::valueOf).toArray(EnumFlag[]::new));
-            if (config.isBoolean("down-origin")) {
-                hologram.setDownOrigin(config.getBoolean("down-origin", Settings.DEFAULT_DOWN_ORIGIN));
-            }
-
-            if (!config.contains("pages") && config.contains("lines")) {
-                // Old Config
-                HologramPage page = hologram.getPage(0);
-                Set<String> keysLines = config.getConfigurationSection("lines").getKeys(false);
-                for (int j = 1; j <= keysLines.size(); j++) {
-                    String path = "lines." + j;
-                    HologramLine line = HologramLine.fromFile(config.getConfigurationSection(path), page, page.getNextLineLocation());
-                    page.addLine(line);
-                }
-                config.set("lines", null);
-                hologram.save();
-                return hologram;
-            }
-
-            // New Config
-            boolean firstPage = true;
-            for (Map<?, ?> map : config.getMapList("pages")) {
-                HologramPage page;
-                if (firstPage) {
-                    page = hologram.getPage(0);
-                    firstPage = false;
-                } else {
-                    page = hologram.addPage();
-                }
-
-                // Load click actions
-                if (map.containsKey("actions")) {
-                    Map<String, List<String>> actionsMap = (Map<String, List<String>>) map.get("actions");
-                    for (ClickType clickType : ClickType.values()) {
-                        if (actionsMap.containsKey(clickType.name())) {
-                            List<String> clickTypeActions = actionsMap.get(clickType.name());
-                            for (String clickTypeAction : clickTypeActions) {
-                                try {
-                                    page.addAction(clickType, new Action(clickTypeAction));
-                                } catch (Exception e) {
-                                    Log.warn("Failed to parse action '%s' for hologram '%s' at page %s! Skipping...",
-                                            e, clickTypeAction, hologram.getName(), page.getIndex());
-                                }
-                            }
-                        }
-                    }
-                }
-
-                // Load lines
-                if (map.containsKey("lines")) {
-                    for (Map<?, ?> lineMap : (List<Map<?, ?>>) map.get("lines")) {
-                        Map<String, Object> values = null;
-                        try {
-                            values = (Map<String, Object>) lineMap;
-                        } catch (Exception ignored) {
-                            // Ignore
-                        }
-                        if (values == null) continue;
-                        HologramLine line = HologramLine.fromMap(values, page, page.getNextLineLocation());
-                        page.addLine(line);
-                    }
-                }
-            }
-            hologram.setFacing((float) config.getDouble("facing", 0.0f));
-            return hologram;
-        } catch (Exception e) {
-            if (hologram != null) {
-                hologram.destroy();
-            }
-            throw e;
-        }
-    }
 
     /*
      *	Fields
@@ -242,7 +112,6 @@ public class Hologram extends UpdatingHologramObject implements ITicked {
 
     protected final String name;
     protected boolean saveToFile;
-    protected final FileConfig config;
     protected final Map<UUID, Integer> viewerPages = new ConcurrentHashMap<>();
     protected final Set<UUID> hidePlayers = ConcurrentHashMap.newKeySet();
     protected final Set<UUID> showPlayers = ConcurrentHashMap.newKeySet();
@@ -251,38 +120,6 @@ public class Hologram extends UpdatingHologramObject implements ITicked {
     protected boolean downOrigin = Settings.DEFAULT_DOWN_ORIGIN;
     protected boolean alwaysFacePlayer = false;
     private final AtomicInteger tickCounter;
-    private final List<NmsClickableHologramRenderer> clickableHologramRenderers = new ArrayList<>();
-
-    /*
-     *	Constructors
-     */
-
-    /**
-     * Creates a new hologram with the given name and location. The hologram will be saved to a file.
-     *
-     * @param name     The name of the hologram.
-     * @param location The location of the hologram.
-     * @see DHAPI#createHologram(String, Location)
-     */
-    public Hologram(@NonNull String name, @NonNull Location location) {
-        this(name, location, true);
-    }
-
-    /**
-     * Creates a FileConfig if saveToFile is set to true
-     *
-     * @param saveToFile Whether the hologram should be saved to a file.
-     * @param name       The name of the hologram.
-     * @return
-     */
-    private static @Nullable FileConfig createConfig(final boolean saveToFile, final String name) {
-        FileConfig conf = null;
-
-        if (saveToFile)
-            conf = new FileConfig(DECENT_HOLOGRAMS.getPlugin(), String.format("holograms/%s.yml", name));
-
-        return conf;
-    }
 
     /**
      * Creates a new hologram with the given name and location.
@@ -293,30 +130,7 @@ public class Hologram extends UpdatingHologramObject implements ITicked {
      * @see DHAPI#createHologram(String, Location, boolean)
      */
     public Hologram(@NonNull String name, @NonNull Location location, boolean saveToFile) {
-        this(name, location, createConfig(saveToFile, name), true, saveToFile);
-    }
-
-    /**
-     * Creates a new hologram with the given name and location. The hologram will be saved to the given file.
-     *
-     * @param name     The name of the hologram.
-     * @param location The location of the hologram.
-     * @param config   The config of the hologram.
-     */
-    public Hologram(@NonNull String name, @NonNull Location location, @NonNull FileConfig config) {
-        this(name, location, config, true);
-    }
-
-    /**
-     * Creates a new hologram with the given name and location.
-     *
-     * @param name     The name of the hologram.
-     * @param location The location of the hologram.
-     * @param config   The config of the hologram.
-     * @param enabled  Whether the hologram should be enabled.
-     */
-    public Hologram(@NonNull String name, @NonNull Location location, @NonNull FileConfig config, boolean enabled) {
-        this(name, location, config, enabled, true);
+        this(name, location, true, saveToFile);
     }
 
     /**
@@ -324,13 +138,11 @@ public class Hologram extends UpdatingHologramObject implements ITicked {
      *
      * @param name       The name of the hologram.
      * @param location   The location of the hologram.
-     * @param config     The config of the hologram.
      * @param enabled    Whether the hologram should be enabled.
      * @param saveToFile Whether the hologram should be saved to a file.
      */
-    public Hologram(@NonNull String name, @NonNull Location location, @Nullable FileConfig config, boolean enabled, boolean saveToFile) {
+    public Hologram(@NonNull String name, @NonNull Location location, boolean enabled, boolean saveToFile) {
         super(location);
-        this.config = config;
         this.enabled = enabled;
         this.name = name;
         this.saveToFile = saveToFile;
@@ -363,7 +175,6 @@ public class Hologram extends UpdatingHologramObject implements ITicked {
             return;
         }
         tickCounter.incrementAndGet();
-        updateAnimationsAll();
     }
 
     /*
@@ -386,9 +197,6 @@ public class Hologram extends UpdatingHologramObject implements ITicked {
     @Override
     public void delete() {
         super.delete();
-
-        if (config != null)
-            config.delete();
     }
 
     /**
@@ -458,7 +266,6 @@ public class Hologram extends UpdatingHologramObject implements ITicked {
     @Override
     public void setLocation(@NonNull Location location) {
         super.setLocation(location);
-        teleportClickableEntitiesAll();
     }
 
     /**
@@ -468,99 +275,6 @@ public class Hologram extends UpdatingHologramObject implements ITicked {
      */
     public int size() {
         return pages.size();
-    }
-
-    /**
-     * Save this hologram to a file asynchronously.
-     *
-     * @implNote Always returns true. If the hologram is not persistent,
-     * this method just doesn't do anything.
-     */
-    public void save() {
-        if (!saveToFile) {
-            return;
-        }
-
-        CompletableFuture.runAsync(() -> {
-            try {
-                lock.tryLock(250, TimeUnit.MILLISECONDS);
-
-                config.set("location", LocationUtils.asString(getLocation(), false));
-                config.set("enabled", isEnabled());
-                config.set("permission", permission == null || permission.isEmpty() ? null : permission);
-                config.set("flags", flags.isEmpty() ? null : flags.stream().map(EnumFlag::name).collect(Collectors.toList()));
-                config.set("display-range", displayRange);
-                config.set("update-range", updateRange);
-                config.set("update-interval", updateInterval);
-                config.set("facing", facing);
-                config.set("down-origin", downOrigin);
-                config.set("pages", pages.stream().map(HologramPage::serializeToMap).collect(Collectors.toList()));
-                config.saveData();
-            } catch (InterruptedException e) {
-                // Failed to acquire lock, cancel save.
-            } finally {
-                // Prevents deadlocks
-                lock.unlock();
-            }
-        });
-    }
-
-    /**
-     * Create a new instance of this hologram object that's identical to this one.
-     *
-     * @param name     Name of the clone.
-     * @param location Location of the clone.
-     * @param temp     True if the clone should only exist until the next reload. (Won't save to file)
-     * @return Cloned instance of this line.
-     */
-    public Hologram clone(@NonNull String name, @NonNull Location location, boolean temp) {
-        Hologram hologram = new Hologram(name, location.clone(), !temp);
-        hologram.setDownOrigin(this.isDownOrigin());
-        hologram.setPermission(this.getPermission());
-        hologram.setFacing(this.getFacing());
-        hologram.setDisplayRange(this.getDisplayRange());
-        hologram.setUpdateRange(this.getUpdateRange());
-        hologram.setUpdateInterval(this.getUpdateInterval());
-        hologram.addFlags(this.getFlags().toArray(new EnumFlag[0]));
-        hologram.setDefaultVisibleState(this.isDefaultVisibleState());
-        hologram.showPlayers.addAll(this.showPlayers);
-        hologram.hidePlayers.addAll(this.hidePlayers);
-
-        for (int i = 0; i < size(); i++) {
-            HologramPage page = getPage(i);
-            HologramPage clonePage = page.clone(hologram, i);
-            if (hologram.pages.size() > i) {
-                hologram.pages.set(i, clonePage);
-            } else {
-                hologram.pages.add(clonePage);
-            }
-        }
-        return hologram;
-    }
-
-    /**
-     * Handle a click on this hologram.
-     *
-     * @param player    The player that clicked the hologram.
-     * @param entityId  The id of the clicked entity.
-     * @param clickType The type of the click.
-     * @return True if the click was handled, false otherwise.
-     */
-    public boolean onClick(@NonNull Player player, int entityId, @NonNull ClickType clickType) {
-        HologramPage page = getPage(player);
-        if (page == null || !page.hasEntity(entityId)) {
-            return false;
-        }
-
-        boolean eventNotCancelled = EventFactory.fireHologramClickEvent(player, this, page, clickType, entityId);
-        if (eventNotCancelled) {
-            if (!hasFlag(EnumFlag.DISABLE_ACTIONS)) {
-                page.executeActions(player, clickType);
-            }
-            return true;
-        }
-
-        return false;
     }
 
     /**
@@ -580,24 +294,6 @@ public class Hologram extends UpdatingHologramObject implements ITicked {
      *	Visibility Methods
      */
 
-    /**
-     * @return Default display state
-     */
-    public boolean isVisibleState() {
-        return defaultVisibleState;
-    }
-
-    /**
-     * Set player hide state
-     *
-     * @param player player
-     */
-    public void setHidePlayer(@NonNull Player player) {
-        UUID uniqueId = player.getUniqueId();
-        if (!hidePlayers.contains(uniqueId)) {
-            hidePlayers.add(player.getUniqueId());
-        }
-    }
 
     /**
      * Remove a player hide state
@@ -617,18 +313,6 @@ public class Hologram extends UpdatingHologramObject implements ITicked {
      */
     public boolean isHideState(@NonNull Player player) {
         return hidePlayers.contains(player.getUniqueId());
-    }
-
-    /**
-     * Set player show state
-     *
-     * @param player player
-     */
-    public void setShowPlayer(@NonNull Player player) {
-        UUID uniqueId = player.getUniqueId();
-        if (!showPlayers.contains(uniqueId)) {
-            showPlayers.add(player.getUniqueId());
-        }
     }
 
     /**
@@ -658,10 +342,10 @@ public class Hologram extends UpdatingHologramObject implements ITicked {
      * @param player    Given player.
      * @param pageIndex Given page.
      */
-    public boolean show(@NonNull Player player, int pageIndex) {
+    public void show(@NonNull Player player, int pageIndex) {
         synchronized (visibilityMutex) {
             if (isDisabled() || isHideState(player) || (!isDefaultVisibleState() && !isShowState(player))) {
-                return false;
+                return;
             }
             HologramPage page = getPage(pageIndex);
             if (page != null && page.size() > 0 && canShow(player) && isInDisplayRange(player)) {
@@ -678,9 +362,7 @@ public class Hologram extends UpdatingHologramObject implements ITicked {
                     // I *think* this is from despawning and spawning the entities (with the same ID) in the same tick.
                     S.sync(() -> showPageTo(player, page, pageIndex), 0L);
                 }
-                return true;
             }
-            return false;
         }
     }
 
@@ -689,7 +371,6 @@ public class Hologram extends UpdatingHologramObject implements ITicked {
         // Add player to viewers
         viewerPages.put(player.getUniqueId(), pageIndex);
         viewers.add(player.getUniqueId());
-        showClickableEntities(player);
     }
 
     public void showAll() {
@@ -697,20 +378,6 @@ public class Hologram extends UpdatingHologramObject implements ITicked {
             if (isEnabled()) {
                 Bukkit.getOnlinePlayers().forEach(player -> show(player, getPlayerPage(player)));
             }
-        }
-    }
-
-    public void update(@NonNull Player player) {
-        update(false, player);
-    }
-
-    public void update(boolean force, @NonNull Player player) {
-        synchronized (visibilityMutex) {
-            if (hasFlag(EnumFlag.DISABLE_UPDATING)) {
-                return;
-            }
-
-            performUpdate(force, player);
         }
     }
 
@@ -724,7 +391,7 @@ public class Hologram extends UpdatingHologramObject implements ITicked {
      */
     public void updateAll(boolean force) {
         synchronized (visibilityMutex) {
-            if (isEnabled() && !hasFlag(EnumFlag.DISABLE_UPDATING)) {
+            if (isEnabled() ) {
                 getViewerPlayers().forEach(player -> performUpdate(force, player));
             }
         }
@@ -738,35 +405,6 @@ public class Hologram extends UpdatingHologramObject implements ITicked {
         HologramPage page = getPage(player);
         if (page != null) {
             page.getLines().forEach(line -> line.update(force, player));
-        }
-    }
-
-    public void updateAnimations(@NonNull Player player) {
-        synchronized (visibilityMutex) {
-            if (hasFlag(EnumFlag.DISABLE_ANIMATIONS)) {
-                return;
-            }
-
-            performUpdateAnimations(player);
-        }
-    }
-
-    public void updateAnimationsAll() {
-        synchronized (visibilityMutex) {
-            if (isEnabled() && !hasFlag(EnumFlag.DISABLE_ANIMATIONS)) {
-                getViewerPlayers().forEach(this::performUpdateAnimations);
-            }
-        }
-    }
-
-    private void performUpdateAnimations(@NotNull Player player) {
-        if (!isVisible(player) || !isInUpdateRange(player) || isHideState(player)) {
-            return;
-        }
-
-        HologramPage page = getPage(player);
-        if (page != null) {
-            page.getLines().forEach(line -> line.updateAnimations(player));
         }
     }
 
@@ -784,7 +422,6 @@ public class Hologram extends UpdatingHologramObject implements ITicked {
 
     private void hidePageFrom(@NonNull Player player, @NonNull HologramPage page) {
         page.getLines().forEach(line -> line.hide(player));
-        hideClickableEntities(player);
     }
 
     public void hideAll() {
@@ -795,67 +432,6 @@ public class Hologram extends UpdatingHologramObject implements ITicked {
         }
     }
 
-    public void showClickableEntities(@NonNull Player player) {
-        HologramPage page = getPage(player);
-        if (page == null || !(page.isClickable() || HologramClickEvent.isRegistered())) {
-            return;
-        }
-
-        // Spawn clickable entities
-        int amount = (int) (page.getHeight() / 2) + 1;
-        Location location = getLocation().clone();
-        location.setY((int) (location.getY() - (isDownOrigin() ? 0 : page.getHeight())) + 0.5);
-        for (int i = 0; i < amount; i++) {
-            NmsClickableHologramRenderer renderer = page.getClickableRenderer(i);
-            renderer.display(player, DecentPosition.fromBukkitLocation(location));
-            location.add(0, 1.8, 0);
-        }
-    }
-
-    public void showClickableEntitiesAll() {
-        if (isEnabled()) {
-            getViewerPlayers().forEach(this::showClickableEntities);
-        }
-    }
-
-    public void hideClickableEntities(@NonNull Player player) {
-        HologramPage page = getPage(player);
-        if (page == null) {
-            return;
-        }
-
-        // De-spawn clickable entities
-        page.getClickableEntityRenderers().forEach(renderer -> renderer.hide(player));
-    }
-
-    public void hideClickableEntitiesAll() {
-        if (isEnabled()) {
-            getViewerPlayers().forEach(this::hideClickableEntities);
-        }
-    }
-
-    public void teleportClickableEntities(@NonNull Player player) {
-        HologramPage page = getPage(player);
-        if (page == null || !(page.isClickable() || HologramClickEvent.isRegistered())) {
-            return;
-        }
-
-        // Spawn clickable entities
-        int amount = (int) (page.getHeight() / 2) + 1;
-        Location location = getLocation().clone();
-        location.setY((int) (location.getY() - (isDownOrigin() ? 0 : page.getHeight())) + 0.5);
-        for (int i = 0; i < amount; i++) {
-            NmsClickableHologramRenderer renderer = page.getClickableRenderer(i);
-            renderer.move(player, DecentPosition.fromBukkitLocation(location));
-            location.add(0, 1.8, 0);
-        }
-    }
-
-    public void teleportClickableEntitiesAll() {
-        if (isEnabled()) {
-            getViewerPlayers().forEach(this::teleportClickableEntities);
-        }
-    }
 
 
     /**
@@ -893,12 +469,6 @@ public class Hologram extends UpdatingHologramObject implements ITicked {
             // Ignored
         }
         return false;
-    }
-
-    public void setDownOrigin(boolean downOrigin) {
-        this.downOrigin = downOrigin;
-        this.hideClickableEntitiesAll();
-        this.showClickableEntitiesAll();
     }
 
     /*
@@ -1008,28 +578,6 @@ public class Hologram extends UpdatingHologramObject implements ITicked {
             }
         }
         return page;
-    }
-
-    public boolean swapPages(int index1, int index2) {
-        if (index1 == index2 || index1 < 0 || index1 >= size() || index2 < 0 || index2 >= size()) {
-            return false;
-        }
-        // Swap them in the list
-        Collections.swap(pages, index1, index2);
-
-        // Swap indexes of affected pages
-        HologramPage page1 = getPage(index1);
-        HologramPage page2 = getPage(index2);
-        int i = page1.getIndex();
-        page1.setIndex(page2.getIndex());
-        page2.setIndex(i);
-
-        // Swap viewers
-        Set<Player> viewers1 = getViewerPlayers(index1);
-        Set<Player> viewers2 = getViewerPlayers(index2);
-        viewers1.forEach(player -> show(player, index2));
-        viewers2.forEach(player -> show(player, index1));
-        return true;
     }
 
 }
