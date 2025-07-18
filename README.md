@@ -7,6 +7,7 @@ This fork is a library rather than a plugin, it is meant to be used in other plu
 I kept ONLY simple text holograms without animations and other things.
 
 Usage:
+(the package relocation is to not conflict with the original plugin)
 
        <repositories>
             <repository>
