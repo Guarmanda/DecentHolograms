@@ -41,7 +41,7 @@ Usage:
         <dependency>
             <groupId>com.github.Guarmanda</groupId>
             <artifactId>DecentHolograms</artifactId>
-            <version>2.9.5-2</version>
+            <version>2.9.5-3</version>
         </dependency>
 
 then to start it, put this in your plugin's onEnable:
