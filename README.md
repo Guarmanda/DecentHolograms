@@ -43,3 +43,19 @@ Usage:
             <artifactId>DecentHolograms</artifactId>
             <version>2.9.5-2</version>
         </dependency>
+
+then to start it, put this in your plugin's onEnable:
+
+```java
+DecentHologramsPlugin hologramPlugin = new DecentHologramsPlugin();
+DecentHolograms hologramImpl = hologramPlugin.onEnable(this);
+```
+Of course you have to declare the two variables somewhere else, in a way that  allows  you to access them later.
+to use it:
+```java
+DHAPI.createHologram(...)
+```
+to stop it:
+```java
+hologramPlugin.onDisable();
+```
