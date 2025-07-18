@@ -32,20 +32,12 @@ class PacketDataSerializerWrapper {
         serializer.clear();
     }
 
-    void writeInt(int value) {
-        serializer.writeInt(value);
-    }
-
-    void writeIntArray(int[] value) {
-        serializer.a(value);
-    }
-
     void writeVarInt(int value) {
         serializer.d(value);
     }
 
-    void writeShort(int value) {
-        serializer.writeShort(value);
+    void writeShort() {
+        serializer.writeShort(0);
     }
 
     void writeByte(int value) {
@@ -56,8 +48,8 @@ class PacketDataSerializerWrapper {
         serializer.writeDouble(value);
     }
 
-    void writeBoolean(boolean value) {
-        serializer.writeBoolean(value);
+    void writeBoolean() {
+        serializer.writeBoolean(false);
     }
 
     void writeUuid(UUID value) {

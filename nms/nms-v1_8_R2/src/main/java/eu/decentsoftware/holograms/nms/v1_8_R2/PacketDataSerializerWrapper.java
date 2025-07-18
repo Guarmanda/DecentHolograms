@@ -39,8 +39,8 @@ class PacketDataSerializerWrapper {
         serializer.b(value);
     }
 
-    void writeShort(int value) {
-        serializer.writeShort(value);
+    void writeShort() {
+        serializer.writeShort(0);
     }
 
     void writeByte(int value) {
