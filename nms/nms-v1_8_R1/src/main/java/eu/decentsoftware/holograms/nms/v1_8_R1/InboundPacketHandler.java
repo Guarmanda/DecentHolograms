@@ -2,13 +2,12 @@ package eu.decentsoftware.holograms.nms.v1_8_R1;
 
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
-import org.bukkit.entity.Player;
 
 class InboundPacketHandler extends ChannelInboundHandlerAdapter {
 
 
 
-    InboundPacketHandler(Player player) {
+    InboundPacketHandler() {
 
     }
 

@@ -19,6 +19,8 @@ import java.util.function.Consumer;
 
 
 import eu.decentsoftware.holograms.nms.api.DecentHologramsNmsException;
+
+@SuppressWarnings("unused")
 public class NmsAdapterImpl implements NmsAdapter {
 
     private static final String PACKET_HANDLER_NAME = "decent_holograms_packet_handler";
@@ -45,7 +47,7 @@ public class NmsAdapterImpl implements NmsAdapter {
             if (pipeline.get(PACKET_HANDLER_NAME) != null) {
                 pipeline.remove(PACKET_HANDLER_NAME);
             }
-            pipeline.addBefore("packet_handler", PACKET_HANDLER_NAME, new InboundPacketHandler(player));
+            pipeline.addBefore("packet_handler", PACKET_HANDLER_NAME, new InboundPacketHandler());
         });
     }
 

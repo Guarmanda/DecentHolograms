@@ -11,7 +11,6 @@ import net.minecraft.server.v1_8_R1.PacketPlayOutEntityTeleport;
 import net.minecraft.server.v1_8_R1.PacketPlayOutSpawnEntityLiving;
 import net.minecraft.server.v1_8_R1.WatchableObject;
 import org.bukkit.craftbukkit.v1_8_R1.entity.CraftPlayer;
-import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 
 import java.util.ArrayList;
@@ -33,12 +32,12 @@ class EntityPacketsBuilder {
         }
     }
 
-    EntityPacketsBuilder withSpawnEntityLiving(int entityId, EntityType type, DecentPosition position, DataWatcher dataWatcher) {
-        PacketDataSerializerWrapper serializer = prepareSpawnEntityData(entityId, type, position);
+    EntityPacketsBuilder withSpawnEntityLiving(int entityId, DecentPosition position, DataWatcher dataWatcher) {
+        PacketDataSerializerWrapper serializer = prepareSpawnEntityData(entityId, position);
         serializer.writeByte(MathHelper.d(position.getYaw() * 256.0F / 360.0F));
-        serializer.writeShort(0);
-        serializer.writeShort(0);
-        serializer.writeShort(0);
+        serializer.writeShort();
+        serializer.writeShort();
+        serializer.writeShort();
         serializer.writeByte(127);
 
         PacketPlayOutSpawnEntityLiving packet = new PacketPlayOutSpawnEntityLiving();
@@ -49,10 +48,10 @@ class EntityPacketsBuilder {
         return this;
     }
 
-    private PacketDataSerializerWrapper prepareSpawnEntityData(int entityId, EntityType type, DecentPosition position) {
+    private PacketDataSerializerWrapper prepareSpawnEntityData(int entityId, DecentPosition position) {
         PacketDataSerializerWrapper serializer = PacketDataSerializerWrapper.getInstance();
         serializer.writeVarInt(entityId);
-        serializer.writeByte(EntityTypeRegistry.getEntityTypeId(type));
+        serializer.writeByte(EntityTypeRegistry.getEntityTypeId());
         serializer.writeInt(MathHelper.floor(position.getX() * 32));
         serializer.writeInt(MathHelper.floor(position.getY() * 32));
         serializer.writeInt(MathHelper.floor(position.getZ() * 32));

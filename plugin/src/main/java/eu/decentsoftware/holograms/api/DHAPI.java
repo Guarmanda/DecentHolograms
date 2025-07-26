@@ -4,7 +4,6 @@ import eu.decentsoftware.holograms.api.holograms.Hologram;
 import eu.decentsoftware.holograms.api.holograms.HologramLine;
 import eu.decentsoftware.holograms.api.holograms.HologramPage;
 import eu.decentsoftware.holograms.api.holograms.enums.HologramLineType;
-import eu.decentsoftware.holograms.api.utils.Common;
 import lombok.experimental.UtilityClass;
 import org.apache.commons.lang.Validate;
 import org.bukkit.Location;
@@ -77,10 +76,6 @@ public final class DHAPI {
     public static Hologram createHologram(String name, Location location, boolean saveToFile, List<String> lines) throws IllegalArgumentException {
         Validate.notNull(name);
         Validate.notNull(location);
-
-        if (!name.matches(Common.NAME_REGEX)) {
-            throw new IllegalArgumentException(String.format("Hologram name can only contain alphanumeric characters, underscores and dashes! (%s)", name));
-        }
 
         if (Hologram.getCachedHologramNames().contains(name)) {
             throw new IllegalArgumentException(String.format("Hologram with that name already exists! (%s)", name));

@@ -1,14 +1,13 @@
 package eu.decentsoftware.holograms.api.utils;
 
-import eu.decentsoftware.holograms.api.utils.color.IridiumColorAPI;
+
 import lombok.experimental.UtilityClass;
+import org.bukkit.ChatColor;
 
 import java.util.regex.Pattern;
 
 @UtilityClass
 public class Common {
-
-    public static final String NAME_REGEX = "[a-zA-Z0-9_-]+";
 
     private static final Pattern SPACING_CHARS_REGEX;
     public static String PREFIX;
@@ -23,7 +22,7 @@ public class Common {
      */
 
     public static String colorize(String string) {
-        return IridiumColorAPI.process(string);
+        return ChatColor.translateAlternateColorCodes('&',string);
     }
 
     /*
