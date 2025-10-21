@@ -18,6 +18,7 @@
 
 package eu.decentsoftware.holograms.semver;
 
+import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -27,6 +28,7 @@ import org.jetbrains.annotations.NotNull;
  * @author d0by
  * @since 2.9.6
  */
+@Getter
 public class SemanticVersion implements Comparable<SemanticVersion> {
 
     private static final String SNAPSHOT_SUFFIX = "-SNAPSHOT";
@@ -40,22 +42,6 @@ public class SemanticVersion implements Comparable<SemanticVersion> {
         this.minor = minor;
         this.patch = patch;
         this.snapshot = snapshot;
-    }
-
-    public int getMajor() {
-        return major;
-    }
-
-    public int getMinor() {
-        return minor;
-    }
-
-    public int getPatch() {
-        return patch;
-    }
-
-    public boolean isSnapshot() {
-        return snapshot;
     }
 
     @Override

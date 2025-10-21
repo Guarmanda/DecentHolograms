@@ -97,17 +97,6 @@ public abstract class HologramObject extends FlagHolder {
     }
 
     /**
-     * The cause for disabling the hologram.
-     * <br>May return {@link DisableCause#NONE} if the Hologram is still enabled.
-     *
-     * @return The cause of why the Hologram is disabled, or {@link DisableCause#NONE} if it is still enabled.
-     */
-    @NonNull
-    public DisableCause getDisableCause() {
-        return cause;
-    }
-
-    /**
      * Check whether the given player is allowed to see this hologram object.
      *
      * @param player Given player.

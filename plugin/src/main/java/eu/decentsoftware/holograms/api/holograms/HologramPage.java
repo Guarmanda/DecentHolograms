@@ -109,17 +109,15 @@ public class HologramPage {
      *
      * @param index Index of the new line.
      * @param line  New line.
-     * @return Boolean whether the operation was successful.
      * @see DHAPI#insertHologramLine(Hologram, int, String)
      */
-    public boolean insertLine(int index, @NonNull HologramLine line) {
+    public void insertLine(int index, @NonNull HologramLine line) {
         if (index < 0 || index > size()) {
-            return false;
+            return;
         }
         lines.add(index, line);
         parent.getViewerPlayers(this.index).forEach(line::show);
         realignLines();
-        return true;
     }
 
     /**

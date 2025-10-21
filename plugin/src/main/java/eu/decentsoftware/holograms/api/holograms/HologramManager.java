@@ -130,11 +130,9 @@ public class HologramManager extends Ticked {
      * Remove hologram by name.
      *
      * @param name Name of the hologram.
-     * @return The hologram or null if it wasn't found.
      */
-    public Hologram removeHologram(@NonNull String name) {
-
-        return hologramMap.remove(name);
+    public void removeHologram(@NonNull String name) {
+        hologramMap.remove(name);
     }
 
     /**

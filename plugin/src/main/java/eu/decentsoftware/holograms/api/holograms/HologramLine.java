@@ -364,8 +364,4 @@ public class HologramLine extends HologramObject {
         return super.canShow(player) && (parent == null || parent.getParent().canShow(player));
     }
 
-    public int[] getEntityIds() {
-        return renderer.getEntityIds();
-    }
-
 }

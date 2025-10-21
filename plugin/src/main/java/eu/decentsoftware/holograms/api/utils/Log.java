@@ -47,31 +47,6 @@ public final class Log {
         logger.info(() -> String.format(message, args));
     }
 
-    public static void info(String message, Throwable throwable) {
-        checkLoggerAvailable();
-        logger.log(Level.INFO, message, throwable);
-    }
-
-    public static void info(String message, Throwable throwable, Object... args) {
-        checkLoggerAvailable();
-        logger.log(Level.INFO, throwable, () -> String.format(message, args));
-    }
-
-    public static void warn(String message) {
-        checkLoggerAvailable();
-        logger.warning(message);
-    }
-
-    public static void warn(String message, Object... args) {
-        checkLoggerAvailable();
-        logger.warning(() -> String.format(message, args));
-    }
-
-    public static void warn(String message, Throwable throwable) {
-        checkLoggerAvailable();
-        logger.log(Level.WARNING, message, throwable);
-    }
-
     public static void warn(String message, Throwable throwable, Object... args) {
         checkLoggerAvailable();
         logger.log(Level.WARNING, throwable, () -> String.format(message, args));
@@ -82,19 +57,9 @@ public final class Log {
         logger.severe(message);
     }
 
-    public static void error(String message, Object... args) {
-        checkLoggerAvailable();
-        logger.severe(() -> String.format(message, args));
-    }
-
     public static void error(String message, Throwable throwable) {
         checkLoggerAvailable();
         logger.log(Level.SEVERE, message, throwable);
-    }
-
-    public static void error(String message, Throwable throwable, Object... args) {
-        checkLoggerAvailable();
-        logger.log(Level.SEVERE, throwable, () -> String.format(message, args));
     }
 
     /**

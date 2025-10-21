@@ -22,9 +22,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 
 class SemanticVersionTest {
 
@@ -128,7 +126,7 @@ class SemanticVersionTest {
     void testEquals_invalidInput() {
         SemanticVersion version = SemanticVersion.fromString("1.0.0");
 
-        assertNotEquals(version, null);
-        assertNotEquals(version, new Object());
+        assertNotEquals(null, version);
+        assertNotEquals(new Object(), version);
     }
 }

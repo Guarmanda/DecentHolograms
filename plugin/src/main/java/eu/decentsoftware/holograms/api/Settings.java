@@ -6,15 +6,15 @@ import lombok.experimental.UtilityClass;
 @UtilityClass
 public class Settings {
 
-    public static boolean DEFAULT_DOWN_ORIGIN = false;
+    public static final boolean DEFAULT_DOWN_ORIGIN = false;
 
-    public static double DEFAULT_HEIGHT_TEXT = 0.3;
+    public static final double DEFAULT_HEIGHT_TEXT = 0.3;
 
-    public static int DEFAULT_DISPLAY_RANGE = 48;
+    public static final int DEFAULT_DISPLAY_RANGE = 48;
 
-    public static int DEFAULT_UPDATE_RANGE = 48;
+    public static final int DEFAULT_UPDATE_RANGE = 48;
 
-    public static int DEFAULT_UPDATE_INTERVAL = 20;
+    public static final int DEFAULT_UPDATE_INTERVAL = 20;
 
     /**
      * If true, the visibility of holograms will be updated when a player gets teleported or respawned.
@@ -28,7 +28,7 @@ public class Settings {
      * @since 2.8.9
      */
 
-    public static boolean UPDATE_VISIBILITY_ON_TELEPORT = false;
+    public static final boolean UPDATE_VISIBILITY_ON_TELEPORT = false;
 
     /**
      * Reload all Settings
