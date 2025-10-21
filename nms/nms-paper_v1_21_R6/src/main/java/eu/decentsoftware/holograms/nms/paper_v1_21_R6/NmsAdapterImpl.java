@@ -2,7 +2,6 @@ package eu.decentsoftware.holograms.nms.paper_v1_21_R6;
 
 import eu.decentsoftware.holograms.nms.api.DecentHologramsNmsException;
 import eu.decentsoftware.holograms.nms.api.NmsAdapter;
-import eu.decentsoftware.holograms.nms.api.NmsPacketListener;
 import eu.decentsoftware.holograms.nms.api.renderer.NmsHologramRendererFactory;
 import eu.decentsoftware.holograms.shared.reflect.ReflectField;
 import io.netty.channel.ChannelPipeline;
@@ -37,15 +36,14 @@ public class NmsAdapterImpl implements NmsAdapter {
     }
 
     @Override
-    public void registerPacketListener(Player player, NmsPacketListener listener) {
+    public void registerPacketListener(Player player) {
         Objects.requireNonNull(player, "player cannot be null");
-        Objects.requireNonNull(listener, "listener cannot be null");
 
         executeOnPipelineInEventLoop(player, pipeline -> {
             if (pipeline.get(PACKET_HANDLER_NAME) != null) {
                 pipeline.remove(PACKET_HANDLER_NAME);
             }
-            pipeline.addBefore("packet_handler", PACKET_HANDLER_NAME, new InboundPacketHandler(player, listener));
+            pipeline.addBefore("packet_handler", PACKET_HANDLER_NAME, new InboundPacketHandler(player));
         });
     }
 

@@ -1,7 +1,6 @@
 package eu.decentsoftware.holograms.nms;
 
 import eu.decentsoftware.holograms.nms.api.NmsAdapter;
-import eu.decentsoftware.holograms.nms.api.NmsPacketListener;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.HandlerList;
@@ -21,9 +20,7 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.mockStatic;
-import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class NmsPacketListenerServiceTest {
@@ -32,8 +29,7 @@ class NmsPacketListenerServiceTest {
     private JavaPlugin javaPlugin;
     @Mock
     private NmsAdapter nmsAdapter;
-    @Mock
-    private NmsPacketListener nmsPacketListener;
+
     @Mock
     private PluginManager pluginManager;
 
@@ -45,7 +41,7 @@ class NmsPacketListenerServiceTest {
             mockedBukkit.when(Bukkit::getOnlinePlayers).thenReturn(new ArrayList<>());
             mockedBukkit.when(Bukkit::getPluginManager).thenReturn(pluginManager);
 
-            nmsPacketListenerService = new NmsPacketListenerService(javaPlugin, nmsAdapter, nmsPacketListener);
+            nmsPacketListenerService = new NmsPacketListenerService(javaPlugin, nmsAdapter);
         }
     }
 
@@ -58,14 +54,14 @@ class NmsPacketListenerServiceTest {
             mockedBukkit.when(Bukkit::getPluginManager).thenReturn(pluginManagerMock);
             JavaPlugin javaPluginMock = mock(JavaPlugin.class);
             NmsAdapter nmsAdapterMock = mock(NmsAdapter.class);
-            NmsPacketListener nmsPacketListenerMock = mock(NmsPacketListener.class);
 
-            NmsPacketListenerService result = new NmsPacketListenerService(javaPluginMock, nmsAdapterMock, nmsPacketListenerMock);
+
+            NmsPacketListenerService result = new NmsPacketListenerService(javaPluginMock, nmsAdapterMock);
 
             assertNotNull(result);
             verify(pluginManagerMock).registerEvents(any(NmsPlayerListener.class), eq(javaPluginMock));
             for (Player onlinePlayer : onlinePlayers) {
-                verify(nmsAdapterMock).registerPacketListener(onlinePlayer, nmsPacketListenerMock);
+                verify(nmsAdapterMock).registerPacketListener(onlinePlayer);
             }
         }
     }
@@ -92,7 +88,7 @@ class NmsPacketListenerServiceTest {
 
         nmsPacketListenerService.registerListener(player);
 
-        verify(nmsAdapter).registerPacketListener(player, nmsPacketListener);
+        verify(nmsAdapter).registerPacketListener(player);
     }
 
     @Test
