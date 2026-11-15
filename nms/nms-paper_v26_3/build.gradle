@@ -1,0 +1,18 @@
+plugins {
+    id("io.papermc.paperweight.userdev") version "2.0.0-beta.24"
+}
+
+dependencies {
+    paperweight.paperDevBundle("26.3.build.253-stable")
+}
+
+compileJava {
+    sourceCompatibility = JavaVersion.VERSION_25
+    targetCompatibility = JavaVersion.VERSION_25
+}
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(25)
+    }
+}

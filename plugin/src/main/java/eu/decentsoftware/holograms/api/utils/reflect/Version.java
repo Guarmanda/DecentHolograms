@@ -48,6 +48,7 @@ public enum Version {
     v1_21_R7(21, Platform.SPIGOT, "1.21.11"),
     paper_v1_21_R7(21, Platform.PAPER, "1.21.11"),
     v26_1(26, Platform.SPIGOT, "26.1"),
+    paper_v26_3(26, Platform.PAPER, "26.3"),
     ;
 
     /*
@@ -76,11 +77,20 @@ public enum Version {
         // Bukkit version (e.g., 1.20.6-R0.1-SNAPSHOT)
         String bukkitVersion = Bukkit.getServer().getBukkitVersion();
         // Minecraft version (e.g., 1.20.6)
-        return bukkitVersion.split("-", 2)[0];
+        return normalizeMinecraftVersion(bukkitVersion);
+    }
+
+    private static String normalizeMinecraftVersion(String version) {
+        // Paper 26.x includes its build in the Bukkit version (26.3.build.253-stable).
+        return version.split("\\.build\\.|-", 2)[0];
     }
 
     @Nullable
     public static Version fromMinecraftVersion(String minecraftVersion, Platform currentPlatform) {
+        if (minecraftVersion == null) {
+            return null;
+        }
+        minecraftVersion = normalizeMinecraftVersion(minecraftVersion);
         for (Version version : Version.values()) {
             if (version.platform.equals(Platform.ALL) || version.platform.equals(currentPlatform)) {
                 for (String candidateMinecraftVersion : version.getMinecraftVersions()) {

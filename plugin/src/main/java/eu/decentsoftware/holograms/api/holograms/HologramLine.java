@@ -137,10 +137,9 @@ public class HologramLine extends HologramObject {
                 height = Settings.DEFAULT_HEIGHT_TEXT;
                 previousRenderer = renderer;
                 renderer = DECENT_HOLOGRAMS.getNmsAdapter().getHologramComponentFactory().createTextRenderer();
-
-                text = parseCustomReplacements();
-                containsPlaceholders = PAPI.containsPlaceholders(text);
             }
+            text = parseCustomReplacements();
+            containsPlaceholders = PAPI.containsPlaceholders(text);
         }
     }
 

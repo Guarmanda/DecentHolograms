@@ -4,11 +4,11 @@ This is a modification of decenthologram with ONLY the bare minimum for text hol
 
 In this version, no commans, no events, no head, entity, or clickable holograms.
 ## Building
-Building DecentHolograms is very simple. All you need is JDK 8+, Gradle, Git and an IDE or Command Line.
+Building DecentHolograms requires JDK 21+ and Git. The Gradle wrapper downloads Gradle and the required Java toolchains, including Java 25 for Minecraft 26.x adapters. The shared API and older adapters retain their existing Java targets.
 
 1. Clone the project to your machine using Git.
 2. Open the project using your IDE or open a command line at the projects' location.
-3. Run `gradle clean shadowJar` and DecentHolograms will build.
+3. Run `./gradlew clean shadowJar` (`gradlew.bat clean shadowJar` on Windows) and DecentHolograms will build.
 4. You can find the jar at `./plugin/build/libs/DecentHolograms-VERSION.jar`
 
 > Replace `VERSION` with the current version of DecentHolograms. (Latest release)
